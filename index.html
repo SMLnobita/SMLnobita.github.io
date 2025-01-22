@@ -4,12 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f7fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #00796b;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 15px 0;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+            transition: color 0.3s, transform 0.3s;
+        }
+        a:hover {
+            color: #0056b3;
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Index Page</h1>
-    <ul>
-        <li><a href="baque/index.html">Baque Folder</a></li>
-        <li><a href="thi/index.html">Thi Folder</a></li>
-    </ul>
+    <div class="container">
+        <h1>Welcome to the Index Page</h1>
+        <ul>
+            <li><a href="baque/index.html">Mở trang web baque</a></li>
+            <li><a href="thi/index.html">Mở trang web Thi</a></li>
+        </ul>
+    </div>
 </body>
 </html>
