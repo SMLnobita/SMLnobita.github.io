@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thời khoá biểu</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Lịch thi học kỳ</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>Mã môn</th>
+        <th>Tên môn</th>
+        <th>Lớp</th>
+        <th>Ngày</th>
+        <th>Giờ</th>
+        <th>Phòng</th>
+        <th>Loại</th>
+      </tr>
+    </thead>
+    <tbody id="schedule-body">
+    </tbody>
+  </table>
+  <script src="data.js"></script>
+  <script src="protect.js"></script>
+  <script>
+    // Hiển thị dữ liệu
+    const tbody = document.getElementById('schedule-body');
+    
+    scheduleData.forEach(item => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.stt}</td>
+        <td>${item.maMon}</td>
+        <td>${item.tenMon}</td>
+        <td>${item.lop}</td>
+        <td>${item.ngay}</td>
+        <td>${item.gio}</td>
+        <td>${item.phong}</td>
+        <td>${item.loai}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  </script>
+</body>
+</html>
