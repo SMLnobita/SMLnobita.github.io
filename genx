@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trạm GenX + Biểu đồ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --primary-color: #0077be;
+      --danger-color: #e74c3c;
+      --success-color: #27ae60;
+      --dark-color: #2c3e50;
+      --light-bg: #f8f9fa;
+      --shadow: 0 2px 5px rgba(0,0,0,0.05);
+      --border-radius: 10px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(to top right, #d0f0ff, #ffffff);
+      padding: 15px;
+      margin: 0;
+      min-height: 100vh;
+      color: var(--dark-color);
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    h2 {
+      text-align: center;
+      color: var(--dark-color);
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+    
+    .current {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px; /* Sử dụng gap thay vì margin */
+    }
+    
+    .value-box {
+      text-align: center;
+      flex: 1 1 100px; /* Đảm bảo kích thước tối thiểu và có thể mở rộng */
+      min-width: 100px;
+      max-width: 150px;
+      background: var(--light-bg);
+      padding: 12px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .value-box:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .value-box i {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: var(--primary-color);
+    }
+    
+    .value {
+      font-size: 1.8rem; /* Giảm kích thước trên mobile */
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .gas-danger {
+      color: var(--danger-color);
+      animation: blink 1s infinite;
+    }
+    
+    .gas-safe {
+      color: var(--success-color);
+    }
+    
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+      gap: 10px;
+      padding: 0 5px;
+      font-size: 0.9rem;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 250px; /* Giảm chiều cao trên mobile */
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: var(--border-radius);
+      overflow: hidden; /* Đảm bảo nội dung không tràn ra ngoài viền bo tròn */
+      background: var(--light-bg);
+      padding: 10px;
+    }
+    
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    /* Media queries cho các thiết bị khác nhau */
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+      }
+      
+      h2 {
+        font-size: 1.3rem;
+      }
+      
+      .value {
+        font-size: 1.5rem;
+      }
+      
+      .chart-container {
+        height: 200px;
+      }
+      
+      .chart-header {
+        font-size: 0.8rem;
+      }
+      
+      .value-box {
+        padding: 10px;
+      }
+    }
+    
+    @media (min-width: 481px) and (max-width: 768px) {
+      .value-box {
+        flex: 1 1 120px;
+      }
+      
+      .value {
+        font-size: 1.7rem;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      .container {
+        padding: 30px;
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+      }
+      
+      .value {
+        font-size: 2.2rem;
+      }
+      
+      .chart-container {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Trạm GenX - Theo dõi nhiệt độ và độ ẩm</h2>
+    
+    <div class="current">
+      <div class="value-box">
+        <div><i class="fas fa-temperature-high"></i> Nhiệt độ</div>
+        <div class="value" id="temp">-- °C</div>
+      </div>
+      <div class="value-box">
+        <div><i class="fas fa-tint"></i> Độ ẩm</div>
+        <div class="value" id="humid">-- %</div>
+      </div>
+      <div class="value-box">
+        <div><i class="fas fa-wind"></i> Gas</div>
+        <div class="value" id="gas">--</div>
+      </div>
+    </div>
+    
+    <div class="chart-header">
+      <div>Biểu đồ theo dõi</div>
+      <div>Cập nhật lúc: <span id="update-time">--:--:--</span></div>
+    </div>
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+    
+    <footer>
+      &copy; 2025 - Hệ thống giám sát GenX
+    </footer>
+  </div>
+  
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      databaseURL: "https://dht11-51c19-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const ref = db.ref("sensor");
+    
+    // Điều chỉnh kích thước điểm dựa vào kích thước màn hình
+    const isMobile = window.innerWidth < 768;
+    const pointRadius = isMobile ? 3 : 4;
+    const pointHoverRadius = isMobile ? 5 : 6;
+    const pointHitRadius = isMobile ? 12 : 15;
+    
+    // Khởi tạo biểu đồ
+    const ctx = document.getElementById('chart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Nhiệt độ (°C)',
+            data: [],
+            borderColor: '#ff6384',
+            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+            borderWidth: 2,
+            pointBackgroundColor: '#ff6384',
+            tension: 0.3,
+            fill: false,
+            pointRadius: pointRadius,
+            pointHoverRadius: pointHoverRadius,
+            pointHitRadius: pointHitRadius
+          },
+          {
+            label: 'Độ ẩm (%)',
+            data: [],
+            borderColor: '#36a2eb',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderWidth: 2,
+            pointBackgroundColor: '#36a2eb',
+            tension: 0.3,
+            fill: false,
+            pointRadius: pointRadius,
+            pointHoverRadius: pointHoverRadius,
+            pointHitRadius: pointHitRadius
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              font: {
+                size: isMobile ? 8 : 11 // Giảm kích thước font trên mobile
+              }
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              maxRotation: 45, // Xoay nhãn trục x để tránh chồng chéo
+              font: {
+                size: isMobile ? 8 : 10 // Giảm kích thước font trên mobile
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: isMobile ? 10 : 15,
+              padding: isMobile ? 5 : 10,
+              font: {
+                size: isMobile ? 10 : 12
+              }
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'nearest',
+            intersect: false,
+            axis: 'xy',
+            titleFont: {
+              size: isMobile ? 10 : 12
+            },
+            bodyFont: {
+              size: isMobile ? 10 : 12
+            },
+            padding: isMobile ? 6 : 10
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          intersect: false,
+          axis: 'xy'
+        },
+        animation: {
+          duration: 700
+        }
+      }
+    });
+    
+    // Xử lý sự kiện thay đổi kích thước màn hình
+    window.addEventListener('resize', function() {
+      const newIsMobile = window.innerWidth < 768;
+      
+      // Chỉ cập nhật nếu trạng thái mobile thay đổi
+      if (newIsMobile !== isMobile) {
+        location.reload(); // Tải lại trang để cập nhật tất cả cài đặt
+      }
+    });
+    
+    // Cập nhật dữ liệu từ Firebase
+    ref.on("value", (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      
+      const temp = data.temp ?? 0;
+      const humid = data.humid ?? 0;
+      const gas = data.gas ?? 0;
+      const time = new Date().toLocaleTimeString();
+      
+      document.getElementById("temp").innerText = temp + " °C";
+      document.getElementById("humid").innerText = humid + " %";
+      
+      const gasElement = document.getElementById("gas");
+      if (gas === 1) {
+        gasElement.innerText = "RÒ RỈ";
+        gasElement.className = "value gas-danger";
+      } else {
+        gasElement.innerText = "An toàn";
+        gasElement.className = "value gas-safe";
+      }
+      
+      document.getElementById("update-time").innerText = time;
+      
+      const MAX_POINTS = 5;
+      
+      // Để đảm bảo animation mượt mà, ta sẽ thêm và xóa điểm trong một "bước"
+      if (chart.data.labels.length >= MAX_POINTS) {
+        // Nếu đã đạt giới hạn, tạo sao chép mảng và loại bỏ điểm đầu tiên
+        const newLabels = [...chart.data.labels.slice(1), time];
+        const newTemp = [...chart.data.datasets[0].data.slice(1), temp];
+        const newHumid = [...chart.data.datasets[1].data.slice(1), humid];
+        
+        // Gán lại toàn bộ mảng dữ liệu mới
+        chart.data.labels = newLabels;
+        chart.data.datasets[0].data = newTemp;
+        chart.data.datasets[1].data = newHumid;
+      } else {
+        // Nếu chưa đạt giới hạn, thêm điểm mới như bình thường
+        chart.data.labels.push(time);
+        chart.data.datasets[0].data.push(temp);
+        chart.data.datasets[1].data.push(humid);
+      }
+      
+      // Cập nhật chart với animation đầy đủ
+      chart.update();
+    });
+  </script>
+</body>
+</html>
