@@ -162,6 +162,26 @@ const chart = new Chart(ctx, {
 let mouseOnGas = false;
 
 /**
+ * Lấy thời gian theo múi giờ Ho Chi Minh (UTC+7)
+ */
+function getHoChiMinhTime() {
+  const now = new Date();
+  
+  // Tạo một đối tượng Date với múi giờ UTC+7 (Ho Chi Minh)
+  // 7 * 60 * 60 * 1000 = 25200000 (số mili giây trong 7 giờ)
+  const hoChiMinhOffset = 7 * 60 * 60 * 1000;
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+  const hoChiMinhTime = new Date(utcTime + hoChiMinhOffset);
+  
+  // Format thời gian theo chuẩn HH:MM:SS
+  const hours = hoChiMinhTime.getHours().toString().padStart(2, '0');
+  const minutes = hoChiMinhTime.getMinutes().toString().padStart(2, '0');
+  const seconds = hoChiMinhTime.getSeconds().toString().padStart(2, '0');
+  
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+/**
  * Vẽ các đường mức cảnh báo và nguy hiểm cho gas
  */
 function drawGasThresholds() {
@@ -337,7 +357,9 @@ ref.on("value", (snapshot) => {
   const temp = data.temp ?? 0;
   const humid = data.humid ?? 0;
   const gas = parseFloat(data.gas ?? 0);
-  const time = new Date().toLocaleTimeString();
+  
+  // Sử dụng giờ Ho Chi Minh thay vì giờ địa phương
+  const time = getHoChiMinhTime();
   
   // Cập nhật hiển thị nhiệt độ và độ ẩm
   document.getElementById("temp").innerText = temp + " °C";
